@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AppPulse – Mobile App Review Sentiment Intelligence</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #050b2e, #020617);
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #22d3ee;
+    }
+
+    input {
+      display: block;
+      margin: 20px auto;
+    }
+
+    canvas {
+      max-width: 500px;
+      margin: 30px auto;
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    th, td {
+      border: 1px solid #334155;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #1e3a8a;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>📱 AppPulse – Mobile App Review Sentiment Intelligence</h1>
+
+<input type="file" id="csvFile" accept=".csv">
+
+<canvas id="sentimentChart"></canvas>
+
+<table id="dataTable">
+  <thead>
+    <tr>
+      <th>App Name</th>
+      <th>Category</th>
+      <th>Rating</th>
+      <th>Review</th>
+      <th>Sentiment</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+document.getElementById("csvFile").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+    const lines = event.target.result.split("\n").slice(1);
+
+    let positive = 0, neutral = 0, negative = 0;
+    const tbody = document.querySelector("#dataTable tbody");
+    tbody.innerHTML = "";
+
+    lines.forEach(line => {
+      if (!line.trim()) return;
+
+      const [app, category, rating] = line.split(",");
+      const r = parseFloat(rating);
+
+      let sentiment = "Neutral";
+      let review = "Average app experience.";
+
+      if (r >= 4) {
+        sentiment = "Positive";
+        review = "Excellent app with smooth performance.";
+        positive++;
+      } else if (r < 3) {
+        sentiment = "Negative";
+        review = "Poor experience and frequent issues.";
+        negative++;
+      } else {
+        neutral++;
+      }
+
+      const row = `<tr>
+        <td>${app}</td>
+        <td>${category}</td>
+        <td>${r}</td>
+        <td>${review}</td>
+        <td>${sentiment}</td>
+      </tr>`;
+
+      tbody.innerHTML += row;
+    });
+
+    drawChart(positive, neutral, negative);
+  };
+
+  reader.readAsText(file);
+});
+
+function drawChart(pos, neu, neg) {
+  const ctx = document.getElementById("sentimentChart").getContext("2d");
+
+  if (window.chart) window.chart.destroy();
+
+  window.chart = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: ["Positive", "Neutral", "Negative"],
+      datasets: [{
+        data: [pos, neu, neg],
+        backgroundColor: ["#22c55e", "#facc15", "#ef4444"]
+      }]
+    }
+  });
+}
+</script>
+
+</body>
+</html>
